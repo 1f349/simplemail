@@ -2,7 +2,6 @@ package simplemail
 
 import (
 	"encoding"
-	"encoding/json"
 	"github.com/emersion/go-message/mail"
 )
 
@@ -13,12 +12,7 @@ type FromAddress struct {
 var _ encoding.TextUnmarshaler = &FromAddress{}
 
 func (f *FromAddress) UnmarshalText(b []byte) error {
-	var a string
-	err := json.Unmarshal(b, &a)
-	if err != nil {
-		return err
-	}
-	address, err := mail.ParseAddress(a)
+	address, err := mail.ParseAddress(string(b))
 	if err != nil {
 		return err
 	}
