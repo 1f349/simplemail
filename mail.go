@@ -2,6 +2,7 @@ package simplemail
 
 import (
 	"bytes"
+	"context"
 	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
@@ -31,7 +32,7 @@ func (m *Mail) mailCall(to []string, r io.Reader) error {
 	if m.Tls {
 		return smtp.SendMailTLS(m.Server, m.loginInfo(), m.From.String(), to, r)
 	}
-	if host == "localhost" || host == "127.0.0.1" {
+	if isLocalhost(host) {
 		// internals of smtp.SendMail without STARTTLS for localhost testing
 		dial, err := smtp.Dial(m.Server)
 		if err != nil {
@@ -44,6 +45,29 @@ func (m *Mail) mailCall(to []string, r io.Reader) error {
 		return dial.SendMail(m.From.String(), to, r)
 	}
 	return smtp.SendMail(m.Server, m.loginInfo(), m.From.String(), to, r)
+}
+
+func isLocalhost(host string) bool {
+	// lookup host with resolver
+	ip, err := net.DefaultResolver.LookupNetIP(context.Background(), "ip", host)
+	if err != nil {
+		return false
+	}
+
+	// missing list of addresses
+	if len(ip) < 1 {
+		return false
+	}
+
+	// if one ip is not loop back then this isn't localhost
+	for _, i := range ip {
+		if !i.IsLoopback() {
+			return false
+		}
+	}
+
+	// all addresses resolved are localhost
+	return true
 }
 
 func (m *Mail) SendMail(subject string, to []*mail.Address, htmlBody, textBody io.Reader) error {
