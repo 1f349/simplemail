@@ -12,12 +12,12 @@ import (
 )
 
 type Mail struct {
-	Name     string      `json:"name"`
-	Tls      bool        `json:"tls"`
-	Server   string      `json:"server"`
-	From     FromAddress `json:"from"`
-	Username string      `json:"username"`
-	Password string      `json:"password"`
+	Name     string      `json:"name" yaml:"name"`
+	Tls      bool        `json:"tls" yaml:"tls"`
+	Server   string      `json:"server" yaml:"server"`
+	From     FromAddress `json:"from" yaml:"from"`
+	Username string      `json:"username" yaml:"username"`
+	Password string      `json:"password" yaml:"password"`
 }
 
 func (m *Mail) loginInfo() sasl.Client {
