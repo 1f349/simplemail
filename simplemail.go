@@ -2,15 +2,11 @@ package simplemail
 
 import (
 	"bytes"
-	"errors"
-	"github.com/1f349/overlapfs"
 	"github.com/emersion/go-message/mail"
 	htmlTemplate "html/template"
 	"io"
 	"io/fs"
 	"log"
-	"os"
-	"path/filepath"
 	textTemplate "text/template"
 )
 
@@ -20,22 +16,13 @@ type SimpleMail struct {
 	textTemplates *textTemplate.Template
 }
 
-func New(sender *Mail, wd string, normal fs.FS) (simpleMail *SimpleMail, err error) {
+func New(sender *Mail, templateFS fs.FS) (simpleMail *SimpleMail, err error) {
 	m := &SimpleMail{mailSender: sender}
-	if wd != "" {
-		mailDir := filepath.Join(wd, "mail-templates")
-		err = os.Mkdir(mailDir, os.ModePerm)
-		if err != nil && !errors.Is(err, os.ErrExist) {
-			return
-		}
-		wdFs := os.DirFS(mailDir)
-		normal = overlapfs.OverlapFS{A: normal, B: wdFs}
-	}
-	m.htmlTemplates, err = htmlTemplate.New("mail").ParseFS(normal, "*.go.html")
+	m.htmlTemplates, err = htmlTemplate.New("mail").ParseFS(templateFS, "*.go.html")
 	if err != nil {
 		return
 	}
-	m.textTemplates, err = textTemplate.New("mail").ParseFS(normal, "*.go.txt")
+	m.textTemplates, err = textTemplate.New("mail").ParseFS(templateFS, "*.go.txt")
 	if err != nil {
 		return
 	}
