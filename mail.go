@@ -12,7 +12,6 @@ import (
 )
 
 type Mail struct {
-	Name     string      `json:"name" yaml:"name"`
 	Tls      bool        `json:"tls" yaml:"tls"`
 	Server   string      `json:"server" yaml:"server"`
 	From     FromAddress `json:"from" yaml:"from"`
