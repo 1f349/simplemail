@@ -10,7 +10,7 @@ type FromAddress mail.Address
 var _ encoding.TextUnmarshaler = &FromAddress{}
 
 func (f FromAddress) String() string {
-	return f.toMailAddress().String()
+	return f.ToMailAddress().String()
 }
 
 func (f *FromAddress) UnmarshalText(b []byte) error {
@@ -22,7 +22,7 @@ func (f *FromAddress) UnmarshalText(b []byte) error {
 	return nil
 }
 
-func (f FromAddress) toMailAddress() *mail.Address {
+func (f FromAddress) ToMailAddress() *mail.Address {
 	m := mail.Address(f)
 	return &m
 }

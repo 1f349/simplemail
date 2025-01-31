@@ -77,7 +77,7 @@ func (m *Mail) SendMail(subject string, to []*mail.Address, htmlBody, textBody i
 	var h mail.Header
 	h.SetDate(time.Now())
 	h.SetSubject(subject)
-	h.SetAddressList("From", []*mail.Address{m.From.toMailAddress()})
+	h.SetAddressList("From", []*mail.Address{m.From.ToMailAddress()})
 	h.SetAddressList("To", to)
 	h.Set("Content-Type", "multipart/alternative")
 
