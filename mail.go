@@ -1,14 +1,12 @@
 package simplemail
 
 import (
-	"bytes"
 	"context"
 	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"io"
 	"net"
-	"time"
 )
 
 type Mail struct {
@@ -69,51 +67,17 @@ func isLocalhost(host string) bool {
 	return true
 }
 
-func (m *Mail) SendMail(subject string, to []*mail.Address, htmlBody, textBody io.Reader) error {
-	// generate the email in this template
-	buf := new(bytes.Buffer)
-
-	// setup mail headers
-	var h mail.Header
-	h.SetDate(time.Now())
-	h.SetSubject(subject)
-	h.SetAddressList("From", []*mail.Address{m.From.ToMailAddress()})
-	h.SetAddressList("To", to)
-	h.Set("Content-Type", "multipart/alternative")
-
-	// setup html and text alternative headers
-	var hHtml, hTxt mail.InlineHeader
-	hHtml.Set("Content-Type", "text/html; charset=utf-8")
-	hTxt.Set("Content-Type", "text/plain; charset=utf-8")
-
-	createWriter, err := mail.CreateWriter(buf, h)
-	if err != nil {
-		return err
-	}
-	inline, err := createWriter.CreateInline()
-	if err != nil {
-		return err
-	}
-	partHtml, err := inline.CreatePart(hHtml)
-	if err != nil {
-		return err
-	}
-	if _, err := io.Copy(partHtml, htmlBody); err != nil {
-		return err
-	}
-	partTxt, err := inline.CreatePart(hTxt)
-	if err != nil {
-		return err
-	}
-	if _, err := io.Copy(partTxt, textBody); err != nil {
-		return err
-	}
-
+// SendMail sends a mail message to the provided mail addresses.
+//
+// The reader should follow the format of an RFC 822-style email.
+//
+// See github.com/emersion/go-smtp.SendMail
+func (m *Mail) SendMail(to []*mail.Address, mailMessage io.Reader) error {
 	// convert all to addresses to strings
 	toStr := make([]string, len(to))
 	for i := range toStr {
 		toStr[i] = to[i].String()
 	}
 
-	return m.mailCall(toStr, buf)
+	return m.mailCall(toStr, mailMessage)
 }

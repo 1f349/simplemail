@@ -22,7 +22,6 @@ func (f *FromAddress) UnmarshalText(b []byte) error {
 	return nil
 }
 
-func (f FromAddress) ToMailAddress() *mail.Address {
-	m := mail.Address(f)
-	return &m
+func (f *FromAddress) ToMailAddress() *mail.Address {
+	return (*mail.Address)(f)
 }

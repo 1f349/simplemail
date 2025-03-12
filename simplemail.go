@@ -1,13 +1,13 @@
 package simplemail
 
 import (
-	"bytes"
 	"github.com/emersion/go-message/mail"
 	htmlTemplate "html/template"
 	"io"
 	"io/fs"
 	"log"
 	textTemplate "text/template"
+	"time"
 )
 
 type SimpleMail struct {
@@ -40,8 +40,29 @@ func (m *SimpleMail) render(wrHtml, wrTxt io.Writer, name string, data any) {
 	}
 }
 
+// PrepareSingle constructs the headers for sending an email to the provided mail address.
+func (m *SimpleMail) PrepareSingle(templateName, subject string, to *mail.Address, data map[string]any) *PreparedMail {
+	return m.PrepareMany(templateName, subject, []*mail.Address{to}, data)
+}
+
+// PrepareMany constructs the headers for sending an email to the provided mail addresses.
+func (m *SimpleMail) PrepareMany(templateName, subject string, to []*mail.Address, data map[string]any) *PreparedMail {
+	p := &PreparedMail{
+		simpleMail:   m,
+		templateName: templateName,
+		rcpt:         to,
+		data:         data,
+	}
+	p.Header.SetDate(time.Now())
+	p.Header.SetSubject(subject)
+	p.Header.SetAddressList("From", []*mail.Address{m.mailSender.From.ToMailAddress()})
+	p.Header.SetAddressList("To", to)
+	p.Header.Set("Content-Type", "multipart/alternative")
+	return p
+}
+
+// Send is a simplified version of PrepareSingle which sends the mail without allowing header modifications.
 func (m *SimpleMail) Send(templateName, subject string, to *mail.Address, data map[string]any) error {
-	var bufHtml, bufTxt bytes.Buffer
-	m.render(&bufHtml, &bufTxt, templateName, data)
-	return m.mailSender.SendMail(subject, []*mail.Address{to}, &bufHtml, &bufTxt)
+	p := m.PrepareSingle(templateName, subject, to, data)
+	return p.SendMail()
 }
